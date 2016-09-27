@@ -51,7 +51,8 @@ describe AmplitudeAPI::Event do
           'user_properties' => { 'c' => 'd' },
           'time' => time,
           'ip' => '127.0.0.1',
-          'insert_id' => 'bestId'
+          'insert_id' => 'bestId',
+          'session_id' => 1_396_381_378_123
         )
 
         expect(event.to_hash).to eq(event_type: 'sausage',
@@ -61,7 +62,8 @@ describe AmplitudeAPI::Event do
                                     user_properties: { 'c' => 'd' },
                                     time: 1_451_606_400_000,
                                     ip: '127.0.0.1',
-                                    insert_id: 'bestId')
+                                    insert_id: 'bestId',
+                                    session_id: 1_396_381_378_123)
       end
 
       it 'accepts symbol attributes' do
@@ -74,7 +76,8 @@ describe AmplitudeAPI::Event do
           user_properties: { 'c' => 'd' },
           time: time,
           ip: '127.0.0.1',
-          insert_id: 'bestId'
+          insert_id: 'bestId',
+          session_id: 1_396_381_378_123
         )
 
         expect(event.to_hash).to eq(event_type: 'sausage',
@@ -84,7 +87,8 @@ describe AmplitudeAPI::Event do
                                     user_properties: { 'c' => 'd' },
                                     time: 1_451_606_400_000,
                                     ip: '127.0.0.1',
-                                    insert_id: 'bestId')
+                                    insert_id: 'bestId',
+                                    session_id: 1_396_381_378_123)
       end
     end
 
@@ -140,6 +144,16 @@ describe AmplitudeAPI::Event do
         expect(event.to_hash[:time]).to eq(1_451_606_400_000)
       end
 
+      it 'does not drop milliseconds' do
+        time = Time.parse('2016-01-01 00:00:00.001 -0000')
+        event = described_class.new(
+          user_id: 123,
+          event_type: 'clicked on home',
+          time: time
+        )
+        expect(event.to_hash[:time]).to eq(1_451_606_400_001)
+      end
+
       it 'does not include time if it is not set' do
         event = described_class.new(
           user_id: 123,
@@ -165,6 +179,35 @@ describe AmplitudeAPI::Event do
           event_type: 'clicked on home'
         )
         expect(event.to_hash).not_to have_key(:insert_id)
+      end
+    end
+
+    describe 'session_id' do
+      it 'includes a session_id for the event' do
+        event = described_class.new(
+          user_id: 123,
+          event_type: 'clicked on home',
+          session_id: 1_396_381_378_123
+        )
+        expect(event.to_hash[:session_id]).to eq(1_396_381_378_123)
+      end
+
+      it 'accepts time as session_id' do
+        session_id_time = Time.parse('2014-04-01 19:42:58.123 UTC')
+        event = described_class.new(
+          user_id: 123,
+          event_type: 'clicked on home',
+          session_id: session_id_time
+        )
+        expect(event.to_hash[:session_id]).to eq(1_396_381_378_123)
+      end
+
+      it 'does not include session_id if it is not set' do
+        event = described_class.new(
+          user_id: 123,
+          event_type: 'clicked on home'
+        )
+        expect(event.to_hash).not_to have_key(:session_id)
       end
     end
 

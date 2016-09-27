@@ -27,6 +27,10 @@ class AmplitudeAPI
     #   @return [ String ] the unique identifier to be sent to Amplitude
     attr_accessor :insert_id
 
+    # @!attribute [ rw ] session_id
+    #   @return [ Long ] the start time of the session in milliseconds since epoch
+    attr_accessor :session_id
+
     # @!attribute [ rw ] price
     #   @return [ String ] (required for revenue data) price of the item purchased
     attr_accessor :price
@@ -56,6 +60,7 @@ class AmplitudeAPI
     # @param [ String ] revenue_type (optional) type of revenue
     # @param [ String ] IP address of the user
     # @param [ String ] insert_id a unique identifier for the event
+    # @param [ Long ] session_id the start time of the session in milliseconds since epoch
     def initialize(attributes = {})
       self.user_id = getopt(attributes, :user_id, '')
       self.device_id = getopt(attributes, :device_id, nil)
@@ -65,6 +70,7 @@ class AmplitudeAPI
       self.time = getopt(attributes, :time)
       self.ip = getopt(attributes, :ip, '')
       self.insert_id = getopt(attributes, :insert_id)
+      self.session_id = getopt(attributes, :session_id)
       validate_revenue_arguments(attributes)
     end
 
@@ -96,6 +102,7 @@ class AmplitudeAPI
       serialized_event[:time] = formatted_time if time
       serialized_event[:ip] = ip if ip
       serialized_event[:insert_id] = insert_id if insert_id
+      serialized_event[:session_id] = formatted_session_id if session_id
       serialized_event
     end
 
@@ -113,7 +120,19 @@ class AmplitudeAPI
     private
 
     def formatted_time
-      time.to_i * 1_000
+      milliseconds_from_epoch_for(time)
+    end
+
+    def formatted_session_id
+      if session_id.is_a?(Time)
+        milliseconds_from_epoch_for(session_id)
+      else
+        session_id
+      end
+    end
+
+    def milliseconds_from_epoch_for(time)
+      (time.to_f * 1000).to_i
     end
 
     def validate_revenue_arguments(options)
