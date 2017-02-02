@@ -276,5 +276,32 @@ describe AmplitudeAPI::Event do
         expect(event.to_hash).not_to have_key(:price)
       end
     end
+
+    describe 'device info params' do
+      it 'includes all device-related params' do
+        event = described_class.new(
+          user_id: 123,
+          event_type: 'clicked on home',
+
+          app_version: '1.70',
+          platform: 'Android',
+          os_name: 'Android',
+          os_version: '7.1.1',
+
+          device_manufacturer: 'Xiaomi',
+          device_model: 'MI 5',
+          carrier: nil
+        )
+
+        expect(event.to_hash).to have_key(:app_version)
+        expect(event.to_hash).to have_key(:platform)
+        expect(event.to_hash).to have_key(:os_name)
+        expect(event.to_hash).not_to have_key(:device_brand)
+        expect(event.to_hash).to have_key(:device_manufacturer)
+        expect(event.to_hash).to have_key(:device_model)
+        expect(event.to_hash).not_to have_key(:device_type)
+        expect(event.to_hash).not_to have_key(:carrier)
+      end
+    end
   end
 end

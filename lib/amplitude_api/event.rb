@@ -47,6 +47,11 @@ class AmplitudeAPI
     #   @return [ String ] type of revenue. (Note: you must send a price and quantity with this field)
     attr_accessor :revenue_type
 
+    attr_accessor :app_version, :platform,
+                  :os_name, :os_version,
+                  :device_brand, :device_manufacturer, :device_model, :device_type,
+                  :carrier
+
     # Create a new Event
     #
     # @param [ String ] user_id a user_id to associate with the event
@@ -72,6 +77,7 @@ class AmplitudeAPI
       self.insert_id = getopt(attributes, :insert_id)
       self.session_id = getopt(attributes, :session_id)
       validate_revenue_arguments(attributes)
+      initialize_device_info_arguments(attributes)
     end
 
     def user_id=(value)
@@ -93,7 +99,7 @@ class AmplitudeAPI
       serialized_event[:event_properties] = event_properties
       serialized_event[:user_properties] = user_properties
       serialized_event = add_optional_properties(serialized_event)
-      serialized_event.merge(revenue_hash)
+      serialized_event.merge(revenue_hash).merge(device_info_hash)
     end
 
     # @return [ Hash ] A serialized Event with optional properties
@@ -145,6 +151,19 @@ class AmplitudeAPI
       raise ArgumentError, 'You must provide a price in order to use the revenue_type' if revenue_type
     end
 
+    def initialize_device_info_arguments(options)
+      self.app_version = getopt(options, :app_version)
+      self.platform = getopt(options, :platform)
+      self.os_name = getopt(options, :os_name)
+      self.os_version = getopt(options, :os_version)
+
+      self.device_brand = getopt(options, :device_brand)
+      self.device_manufacturer = getopt(options, :device_manufacturer)
+      self.device_model = getopt(options, :device_model)
+      self.device_type = getopt(options, :device_type)
+      self.carrier = getopt(options, :carrier)
+    end
+
     def revenue_hash
       revenue_hash = {}
       revenue_hash[:productId] = product_id if product_id
@@ -152,6 +171,19 @@ class AmplitudeAPI
       revenue_hash[:quantity] = quantity if quantity
       revenue_hash[:price] = price if price
       revenue_hash
+    end
+
+    def device_info_hash
+      { app_version:         app_version,
+        platform:            platform,
+        os_name:             os_name,
+        os_version:          os_version,
+
+        device_brand:        device_brand,
+        device_manufacturer: device_manufacturer,
+        device_model:        device_model,
+        device_type:         device_type,
+        carrier:             carrier }
     end
 
     def getopt(options, key, default = nil)
